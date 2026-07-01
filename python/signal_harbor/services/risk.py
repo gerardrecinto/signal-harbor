@@ -2,7 +2,6 @@ import json
 from datetime import datetime, timedelta, timezone
 
 from signal_harbor.config import Settings
-from signal_harbor.domain.enums import RiskLevel
 from signal_harbor.domain.risk_policy import RiskPolicy
 from signal_harbor.ports.cache import Cache
 from signal_harbor.ports.signal_reader import SignalReader

@@ -2,7 +2,6 @@ import json
 from datetime import datetime, timedelta, timezone
 from typing import Protocol
 
-from domain.enums import RiskLevel
 from domain.risk_policy import RiskPolicy
 from ports.cache import Cache
 from ports.signal_reader import SignalReader

@@ -2,8 +2,6 @@ from typing import Optional
 
 import redis
 
-from signal_harbor.ports.cache import Cache
-
 
 class RedisCache:
     # LSP: satisfies Cache Protocol — Redis-specific details are hidden behind the port surface

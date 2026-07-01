@@ -1,12 +1,8 @@
-from datetime import datetime, timezone
-from typing import Optional
+from datetime import datetime
 import uuid
 
 from sqlalchemy import Column, DateTime, String, Text, create_engine
 from sqlalchemy.orm import DeclarativeBase, Session, sessionmaker
-
-from signal_harbor.ports.signal_reader import SignalReader
-from signal_harbor.ports.signal_writer import SignalWriter
 
 
 class Base(DeclarativeBase):
