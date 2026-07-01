@@ -1,5 +1,6 @@
 from django.conf import settings
 from django.http import JsonResponse
+from django.utils.crypto import constant_time_compare
 
 
 class ApiKeyMiddleware:
@@ -11,6 +12,6 @@ class ApiKeyMiddleware:
     def __call__(self, request):
         if request.path.startswith("/api/"):
             provided = request.META.get("HTTP_X_API_KEY", "")
-            if provided != settings.SIGNAL_HARBOR_API_KEY:
+            if not constant_time_compare(provided, settings.SIGNAL_HARBOR_API_KEY):
                 return JsonResponse({"detail": "Unauthorized"}, status=401)
         return self.get_response(request)

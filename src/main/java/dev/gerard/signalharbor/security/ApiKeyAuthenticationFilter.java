@@ -6,6 +6,8 @@ import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import java.io.IOException;
+import java.nio.charset.StandardCharsets;
+import java.security.MessageDigest;
 import org.springframework.http.HttpHeaders;
 import org.springframework.web.filter.OncePerRequestFilter;
 
@@ -31,12 +33,19 @@ public class ApiKeyAuthenticationFilter extends OncePerRequestFilter {
             FilterChain filterChain
     ) throws ServletException, IOException {
         String presentedKey = request.getHeader(API_KEY_HEADER);
-        if (properties.apiKey().equals(presentedKey)) {
+        if (presentedKey != null && constantTimeEquals(properties.apiKey(), presentedKey)) {
             filterChain.doFilter(request, response);
             return;
         }
 
         response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
         response.setHeader(HttpHeaders.WWW_AUTHENTICATE, "ApiKey");
+    }
+
+    private static boolean constantTimeEquals(String expected, String presented) {
+        return MessageDigest.isEqual(
+                expected.getBytes(StandardCharsets.UTF_8),
+                presented.getBytes(StandardCharsets.UTF_8)
+        );
     }
 }

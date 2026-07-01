@@ -1,6 +1,6 @@
 from rest_framework import serializers
 
-from domain.enums import RiskLevel, Severity, SignalType
+from domain.enums import Severity, SignalType
 
 
 class CreateSignalSerializer(serializers.Serializer):
@@ -9,7 +9,7 @@ class CreateSignalSerializer(serializers.Serializer):
     signal_type = serializers.ChoiceField(choices=[(t.value, t.value) for t in SignalType])
     severity = serializers.ChoiceField(choices=[(s.value, s.value) for s in Severity])
     observed_at = serializers.DateTimeField()
-    summary = serializers.CharField()
+    summary = serializers.CharField(max_length=800)
 
 
 class SignalResponseSerializer(serializers.Serializer):
