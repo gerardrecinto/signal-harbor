@@ -17,7 +17,7 @@ variable "replicas" {
 variable "app_port" {
   description = "Container port the application listens on"
   type        = number
-  default     = 8080
+  default     = 80
 }
 
 variable "ingress_host" {

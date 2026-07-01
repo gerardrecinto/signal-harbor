@@ -124,7 +124,7 @@ module "app" {
   namespace    = "signalharbor"
   image        = "ghcr.io/gerardrecinto/signal-harbor:${var.app_version}"
   replicas     = var.backend_replica_count
-  app_port     = 8080
+  app_port     = 80
   ingress_host = var.ingress_host
 
   api_key      = var.api_key
