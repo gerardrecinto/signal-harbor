@@ -113,7 +113,7 @@ Scores aggregate all signals inside a configurable lookback window (default 24 h
 git clone https://github.com/gerardrecinto/signal-harbor.git
 cd signal-harbor
 cp .env.example .env
-docker compose up -d
+docker compose up -d   # brings up PostgreSQL and Redis only, run one of the apps below against them
 ```
 
 ### Docker
@@ -132,6 +132,14 @@ Python / FastAPI:
 cd python
 pip install -e ".[dev]"
 uvicorn signal_harbor.main:app --reload
+```
+
+Python / Django:
+```bash
+cd django
+pip install -e ".[dev]"
+python manage.py migrate
+python manage.py runserver
 ```
 
 The Java, FastAPI, and Django implementations use the same API shape so teams can compare framework tradeoffs without changing the product contract.
@@ -246,9 +254,12 @@ The Docker image runs on port 80. An ingress controller terminates TLS on 443 an
 | `SIGNAL_HARBOR_API_KEY` | required | Auth key for `X-API-Key` header |
 | `SIGNAL_HARBOR_RISK_LOOKBACK_HOURS` | `24` | Signal window for scoring |
 | `SPRING_DATASOURCE_URL` | required | PostgreSQL JDBC URL |
-| `SPRING_REDIS_HOST` | `localhost` | Redis host |
+| `REDIS_HOST` | `localhost` | Redis host (Java) |
 | `DATABASE_URL` | required | PostgreSQL URL (Python) |
 | `REDIS_URL` | `redis://localhost:6379` | Redis URL (Python) |
+| `DJANGO_SECRET_KEY` | dev-only value | Django signing key, override in any real deployment |
+| `DJANGO_DEBUG` | `false` | Django debug mode, never enable outside local dev |
+| `DJANGO_ALLOWED_HOSTS` | `localhost,127.0.0.1` | Comma-separated hosts Django will serve |
 
 ## Tech Stack
 
