@@ -8,9 +8,12 @@ import dev.gerard.signalharbor.signal.ServiceSignalRepository;
 import dev.gerard.signalharbor.signal.Severity;
 import dev.gerard.signalharbor.signal.SignalType;
 import io.micrometer.core.instrument.simple.SimpleMeterRegistry;
+import java.io.ByteArrayOutputStream;
+import java.io.ObjectOutputStream;
 import java.time.Clock;
 import java.time.Instant;
 import java.time.ZoneOffset;
+import java.util.Map;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
@@ -70,5 +73,26 @@ class RiskScoringServiceTest {
         assertThat(summary.signalsByType())
                 .containsEntry("ERROR_RATE_SPIKE", 1L)
                 .containsEntry("LATENCY_SPIKE", 1L);
+    }
+
+    @Test
+    void riskSummaryIsSerializableForRedisCaching() throws Exception {
+        // @Cacheable on RiskScoringService.summarize() goes through Spring's default Redis
+        // cache serializer, which is JDK serialization. If RiskSummary stops implementing
+        // Serializable, every risk-summary request throws at runtime the moment caching is
+        // live, even though unit tests that build the service directly never touch the cache.
+        RiskSummary summary = new RiskSummary(
+                "checkout",
+                Instant.parse("2026-05-30T12:00:00Z"),
+                Instant.parse("2026-05-31T12:00:00Z"),
+                1,
+                5,
+                RiskLevel.ELEVATED,
+                Map.of("DEPLOYMENT_FAILURE", 1L)
+        );
+
+        try (ObjectOutputStream out = new ObjectOutputStream(new ByteArrayOutputStream())) {
+            out.writeObject(summary);
+        }
     }
 }
