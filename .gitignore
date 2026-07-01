@@ -41,7 +41,18 @@ __pycache__/
 *.py[cod]
 *.pyo
 *.db
+*.sqlite3
 .pytest_cache/
 .ruff_cache/
 dist/
 *.egg-info/
+.venv/
+venv/
+
+### Terraform ###
+**/.terraform/
+*.tfstate
+*.tfstate.*
+*.tfvars
+!*.tfvars.example
+crash.log
