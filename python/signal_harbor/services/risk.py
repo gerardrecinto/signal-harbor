@@ -1,5 +1,5 @@
 import json
-from datetime import datetime, timedelta, timezone
+from datetime import UTC, datetime, timedelta
 
 from signal_harbor.config import Settings
 from signal_harbor.domain.risk_policy import RiskPolicy
@@ -29,7 +29,7 @@ class RiskScoringService:
         if cached:
             return json.loads(cached)
 
-        after = datetime.now(tz=timezone.utc) - timedelta(
+        after = datetime.now(tz=UTC) - timedelta(
             hours=self._settings.risk_lookback_hours
         )
         signals = self._reader.find_by_service_after(service_name, after)

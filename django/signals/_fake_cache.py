@@ -1,4 +1,3 @@
-from typing import Optional
 
 
 class FakeCache:
@@ -6,7 +5,7 @@ class FakeCache:
     def __init__(self) -> None:
         self._store: dict[str, str] = {}
 
-    def get(self, key: str) -> Optional[str]:
+    def get(self, key: str) -> str | None:
         return self._store.get(key)
 
     def set(self, key: str, value: str, ttl_seconds: int) -> None:

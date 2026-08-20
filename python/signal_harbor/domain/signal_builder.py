@@ -17,8 +17,7 @@ Usage:
 
 from __future__ import annotations
 
-from datetime import datetime, timezone
-from typing import Optional
+from datetime import UTC, datetime
 
 from signal_harbor.domain.enums import Severity, SignalType
 
@@ -39,22 +38,22 @@ class SignalBuilder:
         # optional — sensible defaults
         self._environment: str = "production"
         self._summary: str = ""
-        self._observed_at: datetime = datetime.now(timezone.utc)
-        self._metadata: Optional[dict] = None
+        self._observed_at: datetime = datetime.now(UTC)
+        self._metadata: dict | None = None
 
-    def environment(self, env: str) -> "SignalBuilder":
+    def environment(self, env: str) -> SignalBuilder:
         self._environment = env
         return self
 
-    def summary(self, text: str) -> "SignalBuilder":
+    def summary(self, text: str) -> SignalBuilder:
         self._summary = text
         return self
 
-    def observed_at(self, ts: datetime) -> "SignalBuilder":
+    def observed_at(self, ts: datetime) -> SignalBuilder:
         self._observed_at = ts
         return self
 
-    def metadata(self, data: dict) -> "SignalBuilder":
+    def metadata(self, data: dict) -> SignalBuilder:
         self._metadata = data
         return self
 

@@ -26,3 +26,6 @@ include = ["config*", "domain*", "ports*", "services*", "signals*"]
 DJANGO_SETTINGS_MODULE = "config.settings"
 pythonpath = ["."]
 testpaths = ["tests"]
+
+[tool.ruff]
+extend-exclude = ["**/migrations/*"]

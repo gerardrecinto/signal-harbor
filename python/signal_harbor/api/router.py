@@ -2,7 +2,11 @@ from fastapi import APIRouter, Depends, Request, status
 
 from signal_harbor.api.auth import require_api_key
 from signal_harbor.api.metrics import risk_summaries_total
-from signal_harbor.api.schemas import CreateSignalRequest, RiskSummaryResponse, SignalResponse
+from signal_harbor.api.schemas import (
+    CreateSignalRequest,
+    RiskSummaryResponse,
+    SignalResponse,
+)
 from signal_harbor.services.ingestion import SignalIngestionService
 from signal_harbor.services.risk import RiskScoringService
 
@@ -21,7 +25,7 @@ def _get_risk(request: Request) -> RiskScoringService:
 @router.post("/signals", response_model=SignalResponse, status_code=status.HTTP_201_CREATED)
 def ingest_signal(
     body: CreateSignalRequest,
-    svc: SignalIngestionService = Depends(_get_ingestion),
+    svc: SignalIngestionService = Depends(_get_ingestion),  # noqa: B008 - FastAPI DI idiom
 ) -> SignalResponse:
     # SRP: this handler's sole job is HTTP translation — business logic lives in the service
     saved = svc.ingest(body.model_dump())
@@ -34,7 +38,7 @@ def ingest_signal(
 )
 def get_risk_summary(
     service_name: str,
-    svc: RiskScoringService = Depends(_get_risk),
+    svc: RiskScoringService = Depends(_get_risk),  # noqa: B008 - FastAPI DI idiom
 ) -> RiskSummaryResponse:
     # SRP: HTTP translation only; scoring and caching live in RiskScoringService
     risk_summaries_total.labels(service_name=service_name).inc()

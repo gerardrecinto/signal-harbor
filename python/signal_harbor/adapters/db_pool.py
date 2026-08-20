@@ -17,7 +17,7 @@ production you'd rely on the engine's built-in pool (NullPool / QueuePool).
 from __future__ import annotations
 
 import threading
-from typing import Optional
+from typing import Self
 
 from sqlalchemy import Engine, create_engine, text
 
@@ -25,9 +25,9 @@ _lock = threading.Lock()
 
 
 class DatabaseConnectionPool:
-    _instance: Optional["DatabaseConnectionPool"] = None
+    _instance: DatabaseConnectionPool | None = None
 
-    def __new__(cls, database_url: str = "", pool_size: int = 5) -> "DatabaseConnectionPool":
+    def __new__(cls, database_url: str = "", pool_size: int = 5) -> Self:
         if cls._instance is None:
             with _lock:
                 if cls._instance is None:
@@ -51,7 +51,7 @@ class DatabaseConnectionPool:
             with self._engine.connect() as conn:
                 conn.execute(text("SELECT 1"))
             return True
-        except Exception:
+        except Exception:  # noqa: BLE001 - health check must report unhealthy on any failure
             return False
 
     @classmethod

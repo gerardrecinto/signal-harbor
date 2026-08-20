@@ -13,9 +13,9 @@ class SignalsConfig(AppConfig):
         from domain.risk_policy import WeightedRiskPolicy
         from services.ingestion import SignalIngestionService
         from services.risk import RiskScoringService
+        from signals import _services as _svc
         from signals._fake_cache import FakeCache
         from signals._redis_cache import RedisCache
-        from signals import _services as _svc
         from signals.orm_adapter import DjangoSignalRepository
 
         repo = DjangoSignalRepository()
@@ -23,7 +23,7 @@ class SignalsConfig(AppConfig):
 
         try:
             cache = RedisCache(django_settings.SIGNAL_HARBOR_REDIS_URL)
-        except Exception:
+        except Exception:  # noqa: BLE001 - fall back to in-memory cache on any startup failure
             cache = FakeCache()
 
         class _SettingsAdapter:

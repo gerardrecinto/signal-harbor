@@ -1,4 +1,5 @@
 import uuid
+from typing import ClassVar
 
 from django.db import models
 
@@ -15,7 +16,7 @@ class Signal(models.Model):
 
     class Meta:
         db_table = "signals"
-        ordering = ["-observed_at"]
+        ordering: ClassVar[list[str]] = ["-observed_at"]
 
     def to_dict(self) -> dict:
         return {
