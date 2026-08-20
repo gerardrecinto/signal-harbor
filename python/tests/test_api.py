@@ -1,14 +1,13 @@
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 
 from fastapi.testclient import TestClient
-
 
 SIGNAL_PAYLOAD = {
     "service_name": "checkout",
     "environment": "prod",
     "signal_type": "DEPLOYMENT_FAILURE",
     "severity": "CRITICAL",
-    "observed_at": datetime.now(tz=timezone.utc).isoformat(),
+    "observed_at": datetime.now(tz=UTC).isoformat(),
     "summary": "Deployment to prod failed at rollout step 3",
 }
 
@@ -61,9 +60,34 @@ def test_auth_rejection_without_api_key(client: TestClient) -> None:
 
 def test_auth_rejection_missing_header(client: TestClient) -> None:
     from starlette.testclient import TestClient as RawClient
+
     from signal_harbor.main import create_app
 
     app = create_app()
     with RawClient(app) as raw:
         resp = raw.get("/api/v1/services/checkout/risk-summary")
     assert resp.status_code == 403
+
+
+def test_health_endpoint_requires_no_api_key(client: TestClient) -> None:
+    from starlette.testclient import TestClient as RawClient
+
+    from signal_harbor.main import create_app
+
+    app = create_app()
+    with RawClient(app) as raw:
+        resp = raw.get("/health")
+    assert resp.status_code == 200
+    assert resp.json() == {"status": "UP"}
+
+
+def test_metrics_endpoint_exposes_prometheus_format(client: TestClient) -> None:
+    from starlette.testclient import TestClient as RawClient
+
+    from signal_harbor.main import create_app
+
+    app = create_app()
+    with RawClient(app) as raw:
+        resp = raw.get("/metrics")
+    assert resp.status_code == 200
+    assert "text/plain" in resp.headers["content-type"]

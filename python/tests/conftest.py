@@ -1,10 +1,12 @@
 import uuid
-from typing import Optional
 
 import pytest
 from fastapi.testclient import TestClient
 
-from signal_harbor.adapters.postgres import PostgresSignalRepository, build_session_factory
+from signal_harbor.adapters.postgres import (
+    PostgresSignalRepository,
+    build_session_factory,
+)
 from signal_harbor.config import Settings
 from signal_harbor.domain.risk_policy import WeightedRiskPolicy
 from signal_harbor.main import create_app
@@ -17,7 +19,7 @@ class FakeCache:
     def __init__(self) -> None:
         self._store: dict[str, str] = {}
 
-    def get(self, key: str) -> Optional[str]:
+    def get(self, key: str) -> str | None:
         return self._store.get(key)
 
     def set(self, key: str, value: str, ttl_seconds: int) -> None:

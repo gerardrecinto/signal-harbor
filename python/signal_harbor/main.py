@@ -1,9 +1,13 @@
+from collections.abc import AsyncIterator
 from contextlib import asynccontextmanager
-from typing import AsyncIterator
 
-from fastapi import FastAPI
+from fastapi import FastAPI, Response
+from prometheus_client import CONTENT_TYPE_LATEST, generate_latest
 
-from signal_harbor.adapters.postgres import PostgresSignalRepository, build_session_factory
+from signal_harbor.adapters.postgres import (
+    PostgresSignalRepository,
+    build_session_factory,
+)
 from signal_harbor.adapters.redis_cache import RedisCache
 from signal_harbor.api.router import router
 from signal_harbor.config import Settings
@@ -33,6 +37,18 @@ async def lifespan(app: FastAPI) -> AsyncIterator[None]:
 def create_app() -> FastAPI:
     app = FastAPI(title="Signal Harbor", version="0.1.0", lifespan=lifespan)
     app.include_router(router)
+
+    # Unauthenticated, mirrors the Java actuator/health and actuator/prometheus
+    # exemptions in ApiKeyAuthenticationFilter so orchestrator probes and
+    # Prometheus scrapes don't need the API key.
+    @app.get("/health")
+    def health() -> dict[str, str]:
+        return {"status": "UP"}
+
+    @app.get("/metrics")
+    def metrics() -> Response:
+        return Response(content=generate_latest(), media_type=CONTENT_TYPE_LATEST)
+
     return app
 
 
