@@ -201,8 +201,14 @@ Response 200:
 ```bash
 curl http://localhost:8080/actuator/health
 curl http://localhost:8080/actuator/prometheus
-curl http://localhost:8080/health        # Python
+curl http://localhost:8080/health        # Python and Django
+curl http://localhost:8080/metrics       # Python
 ```
+
+`/health` and `/metrics` (Python) and `/health` (Django) sit outside the authenticated
+API surface, the same way `/actuator/health` and `/actuator/prometheus` are exempted
+from the API key filter in Java, so orchestrator probes and Prometheus scrapes don't
+need `X-API-Key`.
 
 ## Multi-Framework Architecture
 
