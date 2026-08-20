@@ -44,7 +44,7 @@ class RiskScoringServiceTest {
                 "automation-api",
                 "prod",
                 SignalType.LATENCY_SPIKE,
-                Severity.HIGH,
+                Severity.WARNING,
                 now.minusSeconds(7200),
                 "p95 latency doubled after deploy"
         ));

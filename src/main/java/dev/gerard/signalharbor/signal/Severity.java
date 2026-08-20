@@ -1,9 +1,8 @@
 package dev.gerard.signalharbor.signal;
 
 public enum Severity {
-    LOW(1),
-    MEDIUM(2),
-    HIGH(3),
+    INFO(1),
+    WARNING(3),
     CRITICAL(5);
 
     private final int weight;

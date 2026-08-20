@@ -14,7 +14,7 @@ import org.springframework.stereotype.Component;
  *               + Builder — uses Alert.Builder to construct the alert
  *
  * Reacts to ingested signals. Fires an Alert (built via Alert.Builder) for any
- * CRITICAL or HIGH signal and logs it. Real implementations would POST to
+ * CRITICAL or WARNING signal and logs it. Real implementations would POST to
  * PagerDuty, publish to SNS, etc.
  */
 @Component
@@ -24,7 +24,7 @@ public class RemediationTriggerObserver implements SignalObserver {
 
     @Override
     public void onSignalIngested(ServiceSignal signal) {
-        if (signal.getSeverity().weight() < Severity.HIGH.weight()) {
+        if (signal.getSeverity().weight() < Severity.WARNING.weight()) {
             return;
         }
 

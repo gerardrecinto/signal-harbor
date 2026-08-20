@@ -8,7 +8,7 @@ import org.springframework.stereotype.Component;
  * PATTERN: Strategy — concrete implementation
  *
  * Score = sum of each signal's severity weight.
- * CRITICAL(5) > HIGH(3) > MEDIUM(2) > LOW(1).
+ * CRITICAL(5) > WARNING(3) > INFO(1).
  * This was the original hard-coded logic in RiskScoringService, now extracted.
  */
 @Component("weightedRiskScoringStrategy")
