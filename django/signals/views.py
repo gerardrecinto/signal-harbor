@@ -1,3 +1,5 @@
+from typing import ClassVar
+
 from rest_framework.request import Request
 from rest_framework.response import Response
 from rest_framework.views import APIView
@@ -12,8 +14,8 @@ from signals.serializers import (
 
 class SignalIngestView(APIView):
     # SRP: only handles signal ingestion requests — risk scoring is a separate view
-    authentication_classes = []
-    permission_classes = []
+    authentication_classes: ClassVar[list] = []
+    permission_classes: ClassVar[list] = []
 
     def post(self, request: Request) -> Response:
         ser = CreateSignalSerializer(data=request.data)
@@ -24,9 +26,19 @@ class SignalIngestView(APIView):
 
 class RiskSummaryView(APIView):
     # SRP: only handles risk summary reads — signal writes are a separate view
-    authentication_classes = []
-    permission_classes = []
+    authentication_classes: ClassVar[list] = []
+    permission_classes: ClassVar[list] = []
 
     def get(self, request: Request, service_name: str) -> Response:
         summary = _svc.risk.get_risk_summary(service_name)
         return Response(RiskSummarySerializer(summary).data, status=200)
+
+
+class HealthView(APIView):
+    # Lives outside /api/, so ApiKeyMiddleware never touches it — same shape as
+    # Java's actuator/health and FastAPI's /health, for orchestrator probes.
+    authentication_classes: ClassVar[list] = []
+    permission_classes: ClassVar[list] = []
+
+    def get(self, request: Request) -> Response:
+        return Response({"status": "UP"}, status=200)

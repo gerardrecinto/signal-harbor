@@ -1,15 +1,14 @@
 import json
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 
 import pytest
-
 
 SIGNAL_PAYLOAD = {
     "service_name": "checkout",
     "environment": "prod",
     "signal_type": "DEPLOYMENT_FAILURE",
     "severity": "CRITICAL",
-    "observed_at": datetime.now(tz=timezone.utc).isoformat(),
+    "observed_at": datetime.now(tz=UTC).isoformat(),
     "summary": "Deployment to prod failed at rollout step 3",
 }
 
@@ -29,6 +28,13 @@ def test_ingest_signal_returns_201(api_client):
     assert body["service_name"] == "checkout"
     assert body["severity"] == "CRITICAL"
     assert "id" in body
+
+
+def test_health_returns_ok_without_api_key(client):
+    # plain Django test client — no API key header, /health is outside /api/
+    resp = client.get("/health")
+    assert resp.status_code == 200
+    assert resp.json() == {"status": "UP"}
 
 
 @pytest.mark.django_db
