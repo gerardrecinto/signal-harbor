@@ -1,9 +1,9 @@
-FROM eclipse-temurin:17-jdk-alpine AS build
+FROM eclipse-temurin:25-jdk-alpine AS build
 WORKDIR /build
 COPY . .
 RUN ./mvnw package -DskipTests -q
 
-FROM eclipse-temurin:17-jre-alpine
+FROM eclipse-temurin:25-jre-alpine
 WORKDIR /app
 COPY --from=build /build/target/*.jar app.jar
 ENV SERVER_PORT=80
