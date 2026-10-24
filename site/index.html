@@ -1,0 +1,268 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>signal-harbor: per-service risk from raw signals</title>
+<meta name="description" content="Add build, deploy, latency and security signals for a service and watch the real risk policy score it from LOW to SEVERE, in your browser.">
+<meta property="og:title" content="signal-harbor">
+<meta property="og:description" content="Add build, deploy, latency and security signals for a service and watch the real risk policy score it from LOW to SEVERE, in your browser.">
+<meta property="og:type" content="website">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='7' fill='%234f46e5'/%3E%3Ccircle cx='16' cy='16' r='6' fill='none' stroke='%23fff' stroke-width='3'/%3E%3C/svg%3E">
+<style>
+
+:root{--bg:#f8fafc;--panel:#fff;--panel2:#f1f5f9;--line:#e2e8f0;--fg:#0f172a;--mute:#475569;--brand:#4338ca;--brand-bg:#e0e7ff;--ok:#047857;--ok-bg:#d1fae5;--err:#b91c1c;--err-bg:#fee2e2;--code:#0b1220;--code-fg:#e2e8f0}
+@media (prefers-color-scheme:dark){:root:not([data-theme=light]){--bg:#070d1a;--panel:#0d1526;--panel2:#111c33;--line:#1e2b47;--fg:#e8eefc;--mute:#9fb0cc;--brand:#818cf8;--brand-bg:#1e1b4b;--ok:#34d399;--ok-bg:#06382b;--err:#fca5a5;--err-bg:#3b1212}}
+:root[data-theme=dark]{--bg:#070d1a;--panel:#0d1526;--panel2:#111c33;--line:#1e2b47;--fg:#e8eefc;--mute:#9fb0cc;--brand:#818cf8;--brand-bg:#1e1b4b;--ok:#34d399;--ok-bg:#06382b;--err:#fca5a5;--err-bg:#3b1212}
+*{box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{margin:0;background:var(--bg);color:var(--fg);font:16px/1.6 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;-webkit-font-smoothing:antialiased}
+a{color:var(--brand)}
+code,pre,textarea,.mono{font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace}
+.wrap{max-width:1080px;margin:0 auto;padding:0 16px}
+nav{position:sticky;top:0;z-index:5;background:color-mix(in srgb,var(--bg) 88%,transparent);backdrop-filter:blur(10px);border-bottom:1px solid var(--line)}
+nav .wrap{display:flex;align-items:center;justify-content:space-between;height:56px;gap:12px}
+.logo{display:flex;align-items:center;gap:10px;font-weight:700;color:var(--fg);text-decoration:none}
+.logo i{width:22px;height:22px;border-radius:6px;background:#4f46e5;display:inline-block}
+nav .links{display:flex;gap:18px;align-items:center;font-size:14px}
+nav .links a{color:var(--mute);text-decoration:none}
+nav .links a:hover{color:var(--fg)}
+.btn{display:inline-flex;align-items:center;gap:8px;padding:10px 18px;border-radius:10px;font-weight:600;text-decoration:none;border:1px solid var(--line);color:var(--fg);background:var(--panel);cursor:pointer;font-size:15px}
+.btn.primary{background:#4f46e5;border-color:#4f46e5;color:#ffffff}
+.btn.primary:hover{background:#6366f1}
+.btn:focus-visible,textarea:focus-visible,button:focus-visible,a:focus-visible{outline:2px solid #4f46e5;outline-offset:2px}
+.hero{padding:72px 0 40px;text-align:center}
+.pill{display:inline-block;font-size:13px;color:var(--brand);background:var(--brand-bg);padding:4px 12px;border-radius:99px;margin-bottom:20px;font-weight:600}
+h1{font-size:clamp(34px,6vw,58px);line-height:1.08;margin:0 0 18px;letter-spacing:-.02em}
+h1 em{font-style:normal;color:var(--brand)}
+.lede{max-width:700px;margin:0 auto 28px;color:var(--mute);font-size:18px}
+.cta{display:flex;gap:12px;justify-content:center;flex-wrap:wrap}
+.stats{display:flex;gap:28px;justify-content:center;flex-wrap:wrap;margin-top:36px;color:var(--mute);font-size:14px}
+.stats b{display:block;color:var(--fg);font-size:22px}
+section{padding:56px 0}
+h2{font-size:clamp(26px,4vw,36px);margin:0 0 8px;letter-spacing:-.01em}
+.sub{color:var(--mute);margin:0 0 28px;max-width:720px}
+.lab{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:16px}
+@media (max-width:860px){.lab{grid-template-columns:minmax(0,1fr)}nav .links .hide-s{display:none}}
+.card{background:var(--panel);border:1px solid var(--line);border-radius:14px;overflow:hidden;min-width:0}
+.card h3{margin:0;padding:12px 16px;font-size:13px;letter-spacing:.06em;text-transform:uppercase;color:var(--mute);border-bottom:1px solid var(--line);display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap}
+.tools{display:flex;gap:6px;flex-wrap:wrap}
+.chip{font:600 12px system-ui;padding:5px 10px;border-radius:8px;border:1px solid var(--line);background:var(--panel2);color:var(--fg);cursor:pointer;text-transform:none;letter-spacing:0}
+.chip[aria-pressed=true]{background:var(--brand-bg);border-color:var(--brand);color:var(--brand)}
+#log{display:block;width:100%;height:420px;border:0;padding:12px 14px;font-size:12.5px;line-height:1.55;background:var(--code);color:var(--code-fg);resize:vertical;white-space:pre;overflow:auto}
+.src{display:flex;gap:8px;align-items:center;padding:10px 14px;border-top:1px solid var(--line);font-size:13px;color:var(--mute);flex-wrap:wrap}
+.out{min-height:420px}
+.status{padding:16px;color:var(--mute);font-size:14px}
+.verdict{padding:18px 16px;border-bottom:1px solid var(--line);background:var(--err-bg)}
+.verdict.unknown{background:var(--panel2)}
+.verdict b{display:block;font-size:20px;text-transform:uppercase;letter-spacing:.04em;color:var(--err)}
+.verdict.unknown b{color:var(--mute)}
+.verdict span{font-size:14px;color:var(--mute)}
+.sec{padding:14px 16px;border-bottom:1px solid var(--line)}
+.sec:last-child{border-bottom:0}
+.sec h4{margin:0 0 8px;font-size:12px;letter-spacing:.06em;text-transform:uppercase;color:var(--mute)}
+.bar{height:10px;border-radius:99px;background:var(--panel2);overflow:hidden;max-width:260px;display:inline-block;vertical-align:middle;margin-right:10px;width:60%}
+.bar i{display:block;height:100%;background:#4f46e5}
+.site{padding:8px 0;border-bottom:1px dashed var(--line);font-size:13.5px}
+.site:last-child{border:0}
+.site code{background:var(--panel2);padding:1px 6px;border-radius:5px;font-size:12px}
+.fix{background:var(--ok-bg);color:var(--ok);padding:10px 12px;border-radius:8px;font-size:14px}
+.note{font-size:13px;color:var(--mute);margin-top:12px}
+.steps{display:grid;grid-template-columns:repeat(3,1fr);gap:16px}
+@media (max-width:860px){.steps{grid-template-columns:minmax(0,1fr)}}
+.step{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:20px}
+.step .n{width:28px;height:28px;border-radius:8px;background:var(--brand-bg);color:var(--brand);display:grid;place-items:center;font-weight:700;margin-bottom:10px}
+.step h3{margin:0 0 6px;font-size:17px}
+.step p{margin:0;color:var(--mute);font-size:15px}
+.tw{background:var(--panel);border:1px solid var(--line);border-radius:14px;overflow-x:auto;max-width:100%}
+table{width:100%;min-width:560px;border-collapse:collapse;font-size:14px}
+th,td{text-align:left;padding:12px 14px;border-bottom:1px solid var(--line);vertical-align:top}
+th{font-size:12px;letter-spacing:.06em;text-transform:uppercase;color:var(--mute);background:var(--panel2)}
+tr:last-child td{border-bottom:0}
+td:first-child{font-family:ui-monospace,monospace;font-weight:700;white-space:nowrap}
+.install pre{background:var(--code);color:var(--code-fg);padding:16px;border-radius:12px;overflow-x:auto;font-size:13.5px;margin:0 0 12px}
+.cols2{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:16px}
+@media (max-width:860px){.cols2{grid-template-columns:minmax(0,1fr)}}
+.limits{background:var(--panel);border:1px solid var(--line);border-left:4px solid #f59e0b;border-radius:10px;padding:16px 20px}
+.limits ul{margin:8px 0 0;padding-left:20px;color:var(--mute)}
+footer{border-top:1px solid var(--line);padding:32px 0;color:var(--mute);font-size:14px}
+footer .wrap{display:flex;justify-content:space-between;gap:16px;flex-wrap:wrap}
+.sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0)}
+
+.form{display:grid;gap:10px;padding:14px;grid-template-columns:1fr 1fr}
+@media (max-width:560px){.form{grid-template-columns:1fr}}
+.form label{display:block;font-size:12px;color:var(--mute);margin-bottom:4px}
+.form select,.form input[type=number]{width:100%;background:var(--code);color:var(--code-fg);border:1px solid var(--line);border-radius:8px;padding:8px 10px;font-size:13px;font-family:ui-monospace,monospace}
+.row{display:flex;gap:10px;padding:12px 14px;border-top:1px solid var(--line);flex-wrap:wrap;align-items:center}
+.sl{padding:0 14px 12px;display:grid;gap:6px;max-height:210px;overflow:auto}
+.sg{display:flex;justify-content:space-between;gap:8px;align-items:center;border:1px solid var(--line);border-radius:10px;padding:6px 10px;background:var(--panel2);font-size:13px}
+.sg code{font-size:12px}
+.sg button{all:unset;cursor:pointer;color:var(--brand);font-size:12px;text-decoration:underline}
+.lvl{padding:18px 16px;border-bottom:1px solid var(--line);display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap}
+.lvl b{font-size:22px;letter-spacing:.04em}
+.lvl.LOW{background:var(--ok-bg)} .lvl.LOW b{color:var(--ok)}
+.lvl.ELEVATED{background:#fef3c7} .lvl.ELEVATED b{color:#92400e}
+.lvl.HIGH{background:#ffedd5} .lvl.HIGH b{color:#9a3412}
+.lvl.SEVERE{background:var(--err-bg)} .lvl.SEVERE b{color:var(--err)}
+@media (prefers-color-scheme:dark){:root:not([data-theme=light]) .lvl.ELEVATED{background:#3a2a07} :root:not([data-theme=light]) .lvl.ELEVATED b{color:#fcd34d} :root:not([data-theme=light]) .lvl.HIGH{background:#3a1c07} :root:not([data-theme=light]) .lvl.HIGH b{color:#fdba74}}
+.scale{display:flex;gap:4px;padding:14px 16px;border-bottom:1px solid var(--line)}
+.scale i{flex:1;text-align:center;font:600 11px ui-monospace,monospace;padding:6px 2px;border-radius:6px;background:var(--panel2);color:var(--mute)}
+.scale i.on{background:var(--brand-bg);color:var(--brand);outline:2px solid var(--brand)}
+pre.raw{margin:0;padding:12px 16px;font-size:12px;line-height:1.55;white-space:pre-wrap;word-break:break-word;max-height:200px;overflow:auto;background:var(--code);color:var(--code-fg)}
+.sim{display:inline-block;font:700 11px ui-monospace,monospace;color:var(--brand);background:var(--brand-bg);padding:2px 8px;border-radius:6px;margin-left:8px}
+</style>
+</head>
+<body>
+<nav><div class="wrap">
+  <a class="logo" href="#top"><i></i>signal-harbor</a>
+  <div class="links"><a href="#try" class="hide-s">Try it</a><a href="#install" class="hide-s">Run it</a><a class="btn" href="https://github.com/gerardrecinto/signal-harbor">GitHub</a></div>
+</div></nav>
+
+<header class="hero" id="top"><div class="wrap">
+  <h1>Which service needs attention <em>before</em> the incident?</h1>
+  <p class="lede">A reliability intelligence service. It turns noisy deployment, build, security and runtime events into one explainable risk score per service, with Spring Boot, PostgreSQL, Redis and Kubernetes wiring.</p>
+  <div class="cta"><a class="btn primary" href="#try">Score a service</a><a class="btn" href="#install">Run it</a></div>
+  <div class="stats"><div><b>6</b>signal types</div><div><b>4</b>risk levels</div><div><b>0</b>uploads from this page</div></div>
+</div></header>
+
+
+<section id="try"><div class="wrap">
+  <h2>Score a service</h2>
+  <p class="sub">Add the signals a service received inside its lookback window. The page runs the repo's Python risk policies and signal builder in your browser. The signals are made up by you, and nothing is sent anywhere.</p>
+  <div class="lab">
+    <div class="card">
+      <h3><span>Signals <span class="sim">SIMULATED</span></span><span class="tools"><button class="chip" id="p1">Elevated example</button><button class="chip" id="p2">Noisy outage</button><button class="chip" id="clr">Clear</button></span></h3>
+      <div class="form">
+        <div><label for="svc">service</label><select id="svc"><option>payment-service</option><option>checkout-api</option><option>search</option></select></div>
+        <div><label for="typ">signal type</label><select id="typ"></select></div>
+        <div><label for="sev">severity</label><select id="sev"><option>INFO</option><option selected>WARNING</option><option>CRITICAL</option></select></div>
+        <div><label for="cnt">how many</label><input id="cnt" type="number" min="1" max="30" value="1"></div>
+      </div>
+      <div class="row"><button class="btn primary" id="add" type="button">Add signal</button>
+        <label for="pol" style="font-size:13px;color:var(--mute)">policy</label>
+        <select id="pol" style="background:var(--panel2);color:var(--fg);border:1px solid var(--line);border-radius:8px;padding:6px 8px;font-size:13px"><option value="weighted">WeightedRiskPolicy</option><option value="spike">SpikeDetectionPolicy</option></select></div>
+      <div class="sl" id="list" aria-live="polite"></div>
+    </div>
+    <div class="card" id="res" aria-live="polite">
+      <h3><span>Risk summary</span></h3>
+      <div class="status" id="boot">Loading the scoring code (about 10 MB the first time, cached after)...</div>
+    </div>
+  </div>
+  <p class="note">This runs the Python port of the scoring. The service itself is a Spring Boot API with PostgreSQL and Redis. The page does not run that part.</p>
+</div></section>
+
+<section><div class="wrap">
+  <h2>How it works</h2>
+  <p class="sub">Deterministic scoring you can explain to the person paged by it.</p>
+  <div class="steps">
+    <div class="step"><div class="n">1</div><h3>Ingest signals</h3><p>CI, alerting and security tools post build failures, deploy failures, latency and error spikes, security alerts and database saturation with an API key.</p></div>
+    <div class="step"><div class="n">2</div><h3>Weight by severity</h3><p>INFO counts 1, WARNING 3, CRITICAL 5. The score is the sum inside the lookback window, and it falls as signals age out.</p></div>
+    <div class="step"><div class="n">3</div><h3>Serve a risk level</h3><p>LOW, ELEVATED, HIGH or SEVERE per service, cached in Redis and evicted when a new signal lands. Policies are swappable strategies.</p></div>
+  </div>
+</div></section>
+
+<section><div class="wrap">
+  <h2>Risk levels</h2>
+  <div class="tw"><table><thead><tr><th>Level</th><th>Score</th></tr></thead><tbody>
+    <tr><td>LOW</td><td>below 4</td></tr><tr><td>ELEVATED</td><td>4 to 8</td></tr><tr><td>HIGH</td><td>9 to 14</td></tr><tr><td>SEVERE</td><td>15 and above</td></tr>
+  </tbody></table></div>
+  <p class="note">One CRITICAL deployment failure plus one WARNING latency spike scores 8, which is ELEVATED. The spike policy multiplies the base score once the signal count passes a threshold, to catch many small signals that together mean an outage.</p>
+</div></section>
+
+<section id="install" class="install"><div class="wrap">
+  <h2>Run it</h2>
+  <p class="sub">The README has the full Docker Compose, Jenkins, Kubernetes and Terraform paths.</p>
+  <div class="cols2">
+    <div>
+<pre>git clone https://github.com/gerardrecinto/signal-harbor.git
+cd signal-harbor
+docker compose up</pre>
+    </div>
+    <div>
+<pre>POST /api/v1/signals          # X-API-Key
+GET  /api/v1/services/{name}/risk-summary</pre>
+      <p class="note">Java 17 with Spring Boot is the main service. A Python and Django port sits alongside it.</p>
+    </div>
+  </div>
+</div></section>
+
+<section><div class="wrap">
+  <div class="limits">
+    <strong>What this does not do</strong>
+    <ul>
+      <li>It scores signals you send it. It does not collect them or replace your monitoring stack.</li>
+      <li>The weights and thresholds are fixed constants. They rank services for attention and are not a probability of failure.</li>
+      <li>The README calls it a reference implementation. Treat the Terraform examples as starting points.</li>
+    </ul>
+  </div>
+</div></section>
+
+
+<footer><div class="wrap">
+  <span>signal-harbor. MIT licensed. Built by <a href="https://github.com/gerardrecinto">Gerard Recinto</a>.</span>
+  <span><a href="https://github.com/gerardrecinto/signal-harbor">Source</a> &middot; <a href="https://github.com/gerardrecinto/signal-harbor/releases">Releases</a></span>
+</div></footer>
+<script src="https://cdn.jsdelivr.net/pyodide/v0.26.4/full/pyodide.js"></script>
+<script>
+
+(() => {
+  const FILES = ["__init__.py", "domain/__init__.py", "domain/enums.py", "domain/risk_policy.py", "domain/signal_builder.py"];
+  const TYPES = ["BUILD_FAILURE", "DEPLOYMENT_FAILURE", "LATENCY_SPIKE", "ERROR_RATE_SPIKE", "SECURITY_ALERT", "DATABASE_SATURATION"];
+  const $ = (id) => document.getElementById(id);
+  const esc = (s) => String(s).replace(/[&<>"]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
+  let py = null, sigs = [];
+  const track = (n) => { try { if (window.plausible) window.plausible(n); } catch (e) {} };
+  $("typ").innerHTML = TYPES.map((t) => `<option>${t}</option>`).join("");
+  const PY = `
+import json
+from signal_harbor.domain.enums import RiskLevel, Severity, SignalType
+from signal_harbor.domain.risk_policy import WeightedRiskPolicy, SpikeDetectionPolicy
+from signal_harbor.domain.signal_builder import SignalBuilder
+def score(signals, policy):
+    pol = WeightedRiskPolicy() if policy == "weighted" else SpikeDetectionPolicy()
+    s, lvl = pol.compute_level([{"severity": x["severity"]} for x in signals])
+    built = []
+    for x in signals[:3]:
+        d = (SignalBuilder(x["service"], SignalType(x["type"]), Severity(x["severity"])).environment("production").summary("simulated").build())
+        d["observed_at"] = "(now)"
+        built.append(d)
+    base = sum(Severity(x["severity"]).weight for x in signals)
+    return json.dumps({"score": s, "level": lvl.value, "base": base, "n": len(signals), "built": built})
+`;
+  function drawList() {
+    $("list").innerHTML = sigs.length ? sigs.map((s, i) => `<div class="sg"><span><code>${esc(s.type)}</code> ${esc(s.severity)} on ${esc(s.service)}</span><button data-i="${i}">remove</button></div>`).join("") : '<div class="note" style="margin:0">No signals yet. Add one, or load an example.</div>';
+  }
+  function show(r) {
+    const lv = ["LOW", "ELEVATED", "HIGH", "SEVERE"];
+    $("res").innerHTML = `<h3><span>Risk summary</span></h3>
+      <div class="lvl ${r.level}"><div><b>${r.level}</b><div class="note" style="margin:0">${r.n} signal${r.n === 1 ? "" : "s"}, base weight ${r.base}</div></div><div style="font:700 28px ui-monospace,monospace">score ${r.score}</div></div>
+      <div class="scale">${lv.map((l) => `<i class="${l === r.level ? "on" : ""}">${l}</i>`).join("")}</div>
+      <div class="sec"><h4>Built by SignalBuilder (first ${r.built.length})</h4></div><pre class="raw">${esc(JSON.stringify(r.built, null, 2))}</pre>`;
+  }
+  function run() {
+    if (!py) return;
+    try { py.globals.set("_s", py.toPy(sigs)); py.globals.set("_p", $("pol").value); show(JSON.parse(py.runPython("score(_s, _p)"))); }
+    catch (e) { $("res").innerHTML = '<h3><span>Risk summary</span></h3><div class="status" style="color:var(--err)">' + esc(String(e.message || e).trim().split("\n").pop()) + "</div>"; }
+  }
+  const all = () => { drawList(); run(); };
+  $("add").addEventListener("click", () => { const n = Math.max(1, Math.min(30, +$("cnt").value || 1)); for (let i = 0; i < n; i++) sigs.push({ service: $("svc").value, type: $("typ").value, severity: $("sev").value }); all(); track("sh_add"); });
+  $("list").addEventListener("click", (e) => { const b = e.target.closest("button[data-i]"); if (!b) return; sigs.splice(+b.dataset.i, 1); all(); });
+  $("clr").addEventListener("click", () => { sigs = []; all(); });
+  $("pol").addEventListener("change", () => { run(); track("sh_policy"); });
+  $("p1").addEventListener("click", () => { sigs = [{ service: "payment-service", type: "DEPLOYMENT_FAILURE", severity: "CRITICAL" }, { service: "payment-service", type: "LATENCY_SPIKE", severity: "WARNING" }]; $("pol").value = "weighted"; all(); track("sh_p1"); });
+  $("p2").addEventListener("click", () => { sigs = Array.from({ length: 14 }, () => ({ service: "checkout-api", type: "ERROR_RATE_SPIKE", severity: "INFO" })); $("pol").value = "spike"; all(); track("sh_p2"); });
+  drawList();
+  (async () => {
+    try {
+      py = await loadPyodide();
+      for (const d of ["signal_harbor/domain"]) py.FS.mkdirTree("/lib/" + d);
+      await Promise.all(FILES.map(async (f) => { const r = await fetch("py/" + f); if (!r.ok) throw new Error("could not load " + f); py.FS.writeFile("/lib/signal_harbor/" + f, await r.text()); }));
+      py.runPython("import sys; sys.path.insert(0, '/lib')"); py.runPython(PY);
+      window.__SH_READY__ = true; $("p1").click();
+    } catch (e) { $("boot").textContent = "The in-browser scorer did not load (" + String(e.message || e).split("\n").pop() + "). The Docker quickstart runs the same logic."; }
+  })();
+})();
+
+</script>
+</body>
+</html>
